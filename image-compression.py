@@ -1,13 +1,14 @@
-
-from matplotlib.image import imread
 from PIL import Image 
 import matplotlib.pyplot as plt
 import numpy as np
+import datetime
 import os
+
+
 
 def init_centroids(num_clusters, image):
     
-    H, W, C = image.shape
+    H, W, C = image.shape    
     
     centroids = np.zeros((num_clusters, C))
     
@@ -71,31 +72,35 @@ def update_image(image, centroids):
     
     
     
-image_path = "peppers-large.tiff"
     
-A = imread(image_path)
+def main(image_path, num_clusters = 16, max_iter = 30, eps = 2):
 
-k = 16
+    img = Image.open(image_path)
+    img = img.convert("RGB")
+    
+    img = np.asarray(img)
+    
+    centroids = init_centroids(num_clusters, image = img)
 
-centroids = init_centroids(k, image = A)
+    centroids = update_centroids(centroids = centroids, image = img, max_iter = max_iter, eps = eps)
 
-centroids = update_centroids(centroids = centroids, image = A, max_iter = 30, eps = 2)
+    image = update_image(image = img, centroids = centroids)
 
-image = update_image(image = A, centroids = centroids)
+    plt.imshow(image)
 
-plt.imshow(image)
+    image = Image.fromarray(image)
 
-image = Image.fromarray(image)
-
-try:
-    os.makedirs('output')
-    print("Directory created successfully.")
-except FileExistsError:
-    print("Directory already exists.")
-
-image.save('output/compressed.jpg')
+    try:
+        os.makedirs('output')
+        print("Directory created successfully.")
+    except FileExistsError:
+        print("Directory already exists.")
 
 
+    file_name = "compressed_" + datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    image.save(f'output/{file_name}.jpg')
 
+    plt.show()
+    
 
-plt.show()
+main('peppers-large.tiff')
